@@ -13,6 +13,8 @@ The API Server supports the voting functions of the Investor Portal.
 * Investor login
 * Admin login
 
+Note that a user can have both `admin` and `investor` roles.
+
 ## User with role='admin'
 
   * propose a draft motion
@@ -87,13 +89,14 @@ The API Server supports the voting functions of the Investor Portal.
 ## Role
 
   * name
+  * users[]
 
 ## User
 
   * username
   * password
   * email
-  * role
+  * roles[]
   * votes[]
   * motions[]
   * shareholding

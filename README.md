@@ -13,6 +13,8 @@ The API Server supports the voting functions of the Investor Portal.
 * Investor login
 * Admin login
 
+Note that a user can have both `admin` and `investor` roles.
+
 ## User with role='admin'
 
   * propose a draft motion
@@ -28,7 +30,7 @@ The API Server supports the voting functions of the Investor Portal.
   * delete draft motion
 
   * see a list of motions (filter by open/closed/passed/failed/text, sort by closing date/title/votes cast)
-  
+
     - time remaining
     - the motion title
     - the motion description
@@ -46,7 +48,7 @@ The API Server supports the voting functions of the Investor Portal.
 ## User with role='investor'
 
   * see a list of motions (filter by open/closed/passed/failed/has voted/has not voted/text, sort by closing date/title/votes cast)
-  
+
     - time remaining
     - the motion title
     - the motion description
@@ -63,7 +65,7 @@ The API Server supports the voting functions of the Investor Portal.
 ### Motion
 
   * state
-  
+
     - draft
     - open
     - closed
@@ -87,13 +89,14 @@ The API Server supports the voting functions of the Investor Portal.
 ## Role
 
   * name
+  * users[]
 
 ## User
 
   * username
   * password
   * email
-  * role
+  * roles[]
   * votes[]
   * motions[]
   * shareholding
@@ -104,7 +107,7 @@ The API Server supports the voting functions of the Investor Portal.
 * all subsequent activities requiring user authentication will extract this token from the `authorization` header.
 * if the token expires a new one can be generated to replace it.
 
-### API Routes _incomplete_
+### API Routes
 
 #### `GET /ping`
 
@@ -161,6 +164,146 @@ Returns
 
     200 Okay
 
+#### `POST api/v1/motion` (_not implemented_)
+
+Creates a draft motion
+
+Body params
+
+    {
+      title: 'string',
+      description: 'string',
+      closes: 'string' — ISO8601 Date format,
+      links: [
+        {
+          name: 'string',
+          url: 'string'
+        }
+      ]
+    }
+
+Returns
+
+    200 Okay + motion data including id, slug, and proposer
+
+Error Responses
+
+    400 Invalid Data supplied
+    401 Unauthorised
+
+#### `GET api/v1/motions?status=draft&&search=some%20thing`  (_not implemented_)
+
+Gets a list of motions with the corresponding status and search text, with results depending on whether the user requesting the list is an `admin` or `investor`.
+
+For Admins the allowed statuses are
+
+- draft
+- open
+- closed
+- passed
+- failed
+
+For Investors the allowed statuses are
+
+- open
+- closed
+- passed
+- failed
+- voted
+- not-voted
+
+Returns
+
+    200 Okay + array of motions with data described below.
+
+Draft List returns
+
+- the motion title
+- the motion description
+- links to more detail
+- closing time
+- who proposed by
+
+Open list returns
+
+- time remaining
+- the motion title
+- the motion description
+- links to more detail
+- number of votes cast
+- number of votes outstanding
+- current voting tallies
+- who proposed by
+
+Closed / Passed / Failed lists return
+
+- the motion title
+- the motion description
+- links to more detail
+- number of votes cast
+- number of votes outstanding
+- final show voting tallies
+- who proposed by
+- whether passed or failed
+
+Error Responses
+
+    400 Invalid Data supplied
+    401 Unauthorised
+
+#### `PUT api/v1/motion/:slug`
+
+Updates an exisiting motion.
+
+Body params
+
+    {
+      title: 'string',
+      description: 'string',
+      closes: 'string' — ISO8601 Date format,
+      links: [
+        {
+          name: 'string',
+          url: 'string'
+        }
+      ]
+    }
+
+Returns
+
+    200 Okay + motion data including slug, and proposer
+
+Error Responses
+
+    400 Invalid Data supplied
+    401 Unauthorised
+
+#### `DELETE api/v1/motion/:slug`
+
+Deletes a draft motion.  Motions that have been opened or voted on can not be deleted.
+
+Returns
+
+    200 Okay
+
+Error Responses
+
+    401 Unauthorised
+    403 Deletion not allowed
+
+#### `POST api/v1/upload/csv`
+
+Uploads a CSV file as multi-part form upload data with investor information
+
+Returns
+
+    200 Okay
+
+Error Responses
+
+    400 Invalid or malformed CSV data
+    401 Unauthorised
+
 ## Development
 
 ### Prerequisites
@@ -200,7 +343,7 @@ run `docker-compose up db -d` to only start Postgres, then:
 * `npm test` — runs the unit tests (quick)
 * `npm run test:db` — runs the database tests (not so quick)
 * `npm run test:server` — runs the API endpoint tests (not so quick)
-* `npm run test:db` — runs all the tests (slowest of all)
+* `npm run test:all` — runs all the tests (slowest of all)
 
 ### Lint it
 
